@@ -15,8 +15,6 @@
 - `docs/<nome>` → documentação  
 - `chore/<nome>` → manutenção, configs, CI/CD etc.  
 
----
-
 ### 📝 Commits
 **Formato:**  
 ```
