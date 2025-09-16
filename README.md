@@ -4,7 +4,9 @@
 
 ### 🌱 Branches
 **Formato:**  
+```
 <tipo>/<parte>-<descrição>
+```
 
 #### Tipos de branch
 - `feat/<nome-da-feature>` → quando adicionar uma parte nova  
@@ -17,7 +19,9 @@
 
 ### 📝 Commits
 **Formato:**  
+```
 <tipo>: <descrição>
+```
 
 #### Tipos de commit
 - `feat:` → nova funcionalidade  
