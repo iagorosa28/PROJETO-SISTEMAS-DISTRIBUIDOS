@@ -13,7 +13,9 @@
 - `fix/<nome-do-bug>` → para correções  
 - `refactor/<nome>` → refatoração sem mudar funcionalidade  
 - `docs/<nome>` → documentação  
-- `chore/<nome>` → manutenção, configs, CI/CD etc.  
+- `chore/<nome>` → manutenção, configs, CI/CD etc.
+
+---
 
 ### 📝 Commits
 **Formato:**  
