@@ -3,7 +3,7 @@
 ## 📌 Padrões de Branches e Commits
 
 ### 🌱 Branches
-**Formato:**
+**Formato:**  
 <tipo>/<parte>-<descrição>
 
 #### Tipos de branch
@@ -16,7 +16,7 @@
 ---
 
 ### 📝 Commits
-**Formato:**
+**Formato:**  
 <tipo>: <descrição>
 
 #### Tipos de commit
