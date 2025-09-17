@@ -1,0 +1,26 @@
+services:
+
+  broker:
+    build:
+      context: ./src/broker
+      dockerfile: Dockerfile_broker
+    container_name: broker
+    ports:
+      - 5555:5555
+      - 5556:5556
+
+  servidor:
+    build:
+      context: ./src/servidor
+      dockerfile: Dockerfile_servidor
+    depends_on:
+      - broker
+
+  cliente:
+    build:
+      context: ./src/cliente
+      dockerfile: Dockerfile_cliente
+    depends_on:
+      - servidor
+    # stdin_open: true   # <= mantém STDIN aberto
+    # tty: true          # <= aloca um TTY
