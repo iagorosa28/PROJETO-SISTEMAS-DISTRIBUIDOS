@@ -22,5 +22,5 @@ services:
       dockerfile: Dockerfile_cliente
     depends_on:
       - servidor
-    # stdin_open: true   # <= mantém STDIN aberto
-    # tty: true          # <= aloca um TTY
+    stdin_open: true   # <= mantém STDIN aberto
+    tty: true          # <= aloca um TTY

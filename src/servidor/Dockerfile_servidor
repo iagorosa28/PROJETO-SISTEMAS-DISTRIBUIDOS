@@ -1,9 +1,12 @@
-FROM python:3.13.7-alpine3.21
+FROM maven:3.9-eclipse-temurin-21
 
 WORKDIR /app
 
-RUN pip install pyzmq
-
+# copia tudo (pom.xml + src/)
 COPY . .
 
-CMD ["python", "servidor.py"]
+# compila sem rodar testes
+RUN mvn -q -DskipTests package
+
+# roda o jar gerado pelo maven-shade-plugin (target/app.jar)
+CMD ["java", "-jar", "target/app.jar"]
