@@ -10,8 +10,4 @@ RUN npm install
 # copia o restante (cliente.js, etc.)
 COPY . .
 
-# se o zeromq reclamar de lib nativa, descomente estas linhas:
-# RUN apt-get update && apt-get install -y --no-install-recommends libzmq5 \
-#   && rm -rf /var/lib/apt/lists/*
-
 CMD ["node", "cliente.js"]
