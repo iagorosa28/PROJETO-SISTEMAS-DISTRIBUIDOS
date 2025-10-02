@@ -30,7 +30,7 @@ public class LoginService{
         users.add(user);
 
         Map<String,Object> resposta = Responses.baseDataOk();
-        resposta.put("description", user + "cadastrado!");
+        // resposta.put("description", user + "cadastrado!");
 
         return Responses.ok("login", resposta);
     }

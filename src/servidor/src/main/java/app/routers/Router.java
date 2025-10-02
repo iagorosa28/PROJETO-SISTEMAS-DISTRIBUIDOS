@@ -20,7 +20,12 @@ public class Router{
         if(service.equals("login")){
             LoginService login = new LoginService(users);
             return login.tratarLogin(data);
+
+        }else if(service.equals("users")){
+            UserListService usersList = new UserListService(users);
+            return usersList.listarUsers();
         }
+
         return Responses.error("serviço desconhecido: " + service);
 
     }

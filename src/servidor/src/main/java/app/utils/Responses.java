@@ -48,4 +48,11 @@ public final class Responses{
         return d;
     }
 
+    // sla, não quis pensar muito
+    public static Map<String,Object> baseDataOkList(){
+        Map<String,Object> resposta = new HashMap<>();
+        resposta.put("timestamp", OffsetDateTime.now().toString());
+        return resposta;
+    }
+
 }
