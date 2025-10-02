@@ -23,6 +23,7 @@ public class Servidor{
 
     // conjunto de usuários sem duplicados (depois trocar pelo BD)
     private static final Set<String> USERS = new HashSet<>(); 
+    private static final Set<String> CHANNELS = new HashSet<>(); 
 
     public static void main(String[] args) throws Exception{
         
@@ -36,7 +37,7 @@ public class Servidor{
             rep.connect(BROKER);
             System.out.println("Servidor Java conectado em: " + BROKER);
 
-            Router router = new Router(USERS);
+            Router router = new Router(USERS, CHANNELS);
             
             while(true){
                 
