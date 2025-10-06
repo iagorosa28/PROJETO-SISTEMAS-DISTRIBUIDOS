@@ -15,6 +15,8 @@ services:
       dockerfile: Dockerfile_servidor
     depends_on:
       - broker
+    volumes:
+      - ./data:/app/data
 
   cliente:
     build:

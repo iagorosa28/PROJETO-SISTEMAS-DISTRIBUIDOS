@@ -6,11 +6,12 @@ import java.util.*;
 // importações dos packages
 import app.utils.*;
 import app.services.*;
+import app.persistence.*;
 
 public class Router{
 
-    private final Set<String> listaUsers;
-    private final Set<String> listaChannels;
+    private final SimpleDB usersDB;
+    private final SimpleDB channelsDB;
 
     // reaproveita serviços (evita new a cada request)
     private final CadastroService userCadastro;
@@ -18,13 +19,14 @@ public class Router{
     private final CadastroService channelCadastro;
     private final ListagemService channelListagem;
 
-    public Router(Set<String> listaUsers, Set<String> listaChannels){
-        this.listaUsers = listaUsers;
-        this.listaChannels = listaChannels;
-        this.userCadastro = new CadastroService(this.listaUsers);
-        this.userListagem = new ListagemService(this.listaUsers);
-        this.channelCadastro = new CadastroService(this.listaChannels);
-        this.channelListagem = new ListagemService(this.listaChannels);
+    public Router(SimpleDB usersDB, SimpleDB channelsDB){
+        this.usersDB = usersDB;
+        this.channelsDB = channelsDB;
+        this.userCadastro = new CadastroService(this.usersDB);
+        this.userListagem = new ListagemService(this.usersDB);
+        this.channelCadastro = new CadastroService(this.channelsDB);
+        this.channelListagem = new ListagemService(this.channelsDB);
+
     }
 
     public Map<String, Object> qualService(String service, Map<String, Object> data){

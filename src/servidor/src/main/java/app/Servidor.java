@@ -14,6 +14,7 @@ import java.util.*;
 // importações dos packages
 import app.utils.*;
 import app.routers.*;
+import app.persistence.*;
 
 public class Servidor{
 
@@ -21,11 +22,12 @@ public class Servidor{
 
     private static final ObjectMapper JSON = new ObjectMapper();
 
-    // conjunto de usuários sem duplicados (depois trocar pelo BD)
-    private static final Set<String> USERS = new HashSet<>(); 
-    private static final Set<String> CHANNELS = new HashSet<>(); 
+    private static final String url = "jdbc:sqlite:/app/data/meubanco.db";
 
     public static void main(String[] args) throws Exception{
+
+        SimpleDB usersDB = new SimpleDB(url, "users");
+        SimpleDB channelsDB = new SimpleDB(url, "channels");
         
         // "try-with-resources": ao sair do bloco, o ZContext é fechado automaticamente
         try(ZContext ctx = new ZContext()){
@@ -37,7 +39,7 @@ public class Servidor{
             rep.connect(BROKER);
             System.out.println("Servidor Java conectado em: " + BROKER);
 
-            Router router = new Router(USERS, CHANNELS);
+            Router router = new Router(usersDB, channelsDB);
             
             while(true){
                 

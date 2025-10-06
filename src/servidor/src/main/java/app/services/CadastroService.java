@@ -5,13 +5,14 @@ import java.util.*;
 
 // importações dos packages
 import app.utils.*;
+import app.persistence.*;
 
 public class CadastroService{
 
-    private final Set<String> lista;
+    private final SimpleDB db;
 
-    public CadastroService(Set<String> lista) {
-        this.lista = lista;
+    public CadastroService(SimpleDB db) {
+        this.db = db;
     }
 
     public Map<String, Object> tratarCadastro(String service, Map<String,Object> data){
@@ -33,7 +34,7 @@ public class CadastroService{
 
         name = name.trim();
 
-        if(lista.contains(name)){
+        if(db.verificaNome(name)){
             if(service.equals("login")){
                 return Responses.serviceError("login", "usuário já existente");
             }else if(service.equals("channel")){
@@ -41,7 +42,7 @@ public class CadastroService{
             }
         }
 
-        lista.add(name);
+        db.addNome(name);
 
         Map<String,Object> resposta = Responses.baseDataOk();
         // resposta.put("description", name + "cadastrado!");
