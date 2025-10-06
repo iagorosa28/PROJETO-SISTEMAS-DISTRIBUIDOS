@@ -1,0 +1,13 @@
+FROM node:20
+
+WORKDIR /app
+
+# copia e instala deps primeiro (melhor cache)
+COPY package*.json ./
+
+RUN npm install
+
+# copia o restante (cliente.js, etc.)
+COPY . .
+
+CMD ["node", "cliente.js"]

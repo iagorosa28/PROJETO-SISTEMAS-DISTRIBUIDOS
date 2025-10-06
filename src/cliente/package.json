@@ -1,0 +1,12 @@
+{
+  "name": "cliente-bbs",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "zeromq": "^6.0.0",
+    "prompt-sync": "^4.2.0"
+  },
+  "scripts": {
+    "start": "node cliente.js"
+  }
+}
