@@ -1,5 +1,5 @@
 import zmq from "zeromq";
-import { menu } from "./menu.js"
+import { menu, cadastrarUsuario } from "./menu.js"
 
 const brokerUrl = "tcp://broker:5555"
 
@@ -10,6 +10,17 @@ async function main(){ // async retorna uma promessa
     console.log("Cliente JS conectado em: ", brokerUrl);
     /* * */
     
+    const loginMsg = cadastrarUsuario(); // pergunta o nome e monta {service:"login", data:{...}}
+    try{
+        await sock.send(JSON.stringify(loginMsg));
+        const [loginBuf] = await sock.receive();
+        const loginResp = JSON.parse(loginBuf.toString("utf-8"));
+        console.log("Login OK:", loginResp);
+    }catch(e){
+        console.error("Falha no login:", e);
+        process.exit(1);
+    }
+
     while(true){
         const mensagem = menu();
 

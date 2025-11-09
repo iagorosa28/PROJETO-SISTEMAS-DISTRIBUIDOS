@@ -5,22 +5,19 @@ const prompt = promptSync(/*{ sigint: true }*/); // para interação com o usuá
 
 export function menu(){
     console.log("Menu Inicial...");
-    console.log("1. Cadastrar usuário");
-    console.log("2. Listar usuários");
-    console.log("3. Cadastrar canal");
-    console.log("4. Listar canais");
-    console.log("5. Sair");
+    console.log("1. Listar usuários");
+    console.log("2. Cadastrar canal");
+    console.log("3. Listar canais");
+    console.log("4. Sair");
     const opcao = Number(prompt("Digite uma opção: ")); // Number -> não preciso me preocupar em fazer o trim()
 
     if(opcao === 1){
-        return cadastrarUsuario();
-    }else if(opcao === 2){
         return listarUsuarios();
-    }else if(opcao === 3){
+    }else if(opcao === 2){
         return cadastrarCanal();
-    }else if(opcao === 4){
+    }else if(opcao === 3){
         return listarCanais();
-    }else if(opcao === 5){
+    }else if(opcao === 4){
         console.log("Tchau!");
         return "sair";
     }else{
@@ -29,7 +26,7 @@ export function menu(){
     }
 }
 
-function cadastrarUsuario(){
+export function cadastrarUsuario(){
     const nomeUsuario = prompt("Digite o nome de usuario que deseja cadastrar: ").trim(); // trim() -> corta espaços no começo e no fim
 
     return {

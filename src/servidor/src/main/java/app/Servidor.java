@@ -20,6 +20,8 @@ public class Servidor{
 
     private static final String BROKER = "tcp://broker:5556";
 
+    /* private static final String XPUB = "tcp://proxy:5558"; */
+
     private static final ObjectMapper JSON = new ObjectMapper();
 
     private static final String url = "jdbc:sqlite:/app/data/meubanco.db";
@@ -34,10 +36,15 @@ public class Servidor{
             
             // cria uma socket do tipo reply
             ZMQ.Socket rep = ctx.createSocket(ZMQ.REP);
+            /* // cria uma socket do tipo pub
+            ZMQ.Socket pub = ctx.createSocket(ZMQ.pub); */
            
             // conecta ao broker
             rep.connect(BROKER);
             System.out.println("Servidor Java conectado em: " + BROKER);
+            /* // conecta ao pub
+            pub.connect(XPUB);
+            System.out.println("Servidor Java conectado em: " + XPUB); */
 
             Router router = new Router(usersDB, channelsDB);
             

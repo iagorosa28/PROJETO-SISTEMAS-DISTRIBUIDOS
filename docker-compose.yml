@@ -9,12 +9,22 @@ services:
       - 5555:5555
       - 5556:5556
 
+  proxy:
+    build:
+      context: ./src/proxy
+      dockerfile: Dockerfile_proxy
+    container_name: proxy
+    ports:
+      - "5557:5557"   # XSUB
+      - "5558:5558"   # XPUB
+
   servidor:
     build:
       context: ./src/servidor
       dockerfile: Dockerfile_servidor
     depends_on:
       - broker
+      # - proxy
     volumes:
       - ./data:/app/data
 
