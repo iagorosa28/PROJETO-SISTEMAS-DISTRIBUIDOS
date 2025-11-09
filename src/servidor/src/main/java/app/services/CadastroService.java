@@ -36,9 +36,11 @@ public class CadastroService{
 
         if(db.verificaNome(name)){
             if(service.equals("login")){
-                return Responses.serviceError("login", "usuário já existente");
+                Map<String,Object> resposta = Responses.baseDataOk();
+                return Responses.ok(service, resposta);
             }else if(service.equals("channel")){
-                return Responses.serviceError("channel", "channel já existente");
+                Map<String,Object> resposta = Responses.baseDataOk();
+                return Responses.ok(service, resposta);
             }
         }
 

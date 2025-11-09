@@ -2,6 +2,7 @@ import zmq from "zeromq";
 import { menu, cadastrarUsuario } from "./menu.js"
 
 const brokerUrl = "tcp://broker:5555"
+const subUrl = "tcp://broker:5557"
 
 async function main(){ // async retorna uma promessa
     /* Traduzido de python (para conectar na URL e conversar com o servidor) */
@@ -20,6 +21,12 @@ async function main(){ // async retorna uma promessa
         console.error("Falha no login:", e);
         process.exit(1);
     }
+
+    const myName = loginMsg.data.user;
+    const sub = new zmq.Subscriber();
+    await sub.connect(subUrl);
+    sub.subscribe(myName);
+    console.log("Inscrito no tópico:", myName);
 
     while(true){
         const mensagem = menu();
