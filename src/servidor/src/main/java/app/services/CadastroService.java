@@ -34,17 +34,9 @@ public class CadastroService{
 
         name = name.trim();
 
-        if(db.verificaNome(name)){
-            if(service.equals("login")){
-                Map<String,Object> resposta = Responses.baseDataOk();
-                return Responses.ok(service, resposta);
-            }else if(service.equals("channel")){
-                Map<String,Object> resposta = Responses.baseDataOk();
-                return Responses.ok(service, resposta);
-            }
+        if(!db.verificaNome(name)){
+            db.addNome(name);
         }
-
-        db.addNome(name);
 
         Map<String,Object> resposta = Responses.baseDataOk();
         // resposta.put("description", name + "cadastrado!");

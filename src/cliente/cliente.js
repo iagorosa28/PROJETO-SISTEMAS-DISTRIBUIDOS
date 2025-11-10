@@ -1,5 +1,5 @@
 import zmq from "zeromq";
-import { menu, cadastrarUsuario } from "./menu.js"
+import { menu, logarUsuario } from "./menu.js"
 
 const brokerUrl = "tcp://broker:5555"
 const subUrl = "tcp://broker:5557"
@@ -11,7 +11,7 @@ async function main(){ // async retorna uma promessa
     console.log("Cliente JS conectado em: ", brokerUrl);
     /* * */
     
-    const loginMsg = cadastrarUsuario(); // pergunta o nome e monta {service:"login", data:{...}}
+    const loginMsg = logarUsuario(); // pergunta o nome e monta {service:"login", data:{...}}
     try{
         await sock.send(JSON.stringify(loginMsg));
         const [loginBuf] = await sock.receive();
@@ -26,7 +26,7 @@ async function main(){ // async retorna uma promessa
     const sub = new zmq.Subscriber();
     await sub.connect(subUrl);
     sub.subscribe(myName);
-    console.log("Inscrito no tópico:", myName);
+    console.log("Logado como:", myName);
 
     while(true){
         const mensagem = menu();
@@ -44,6 +44,13 @@ async function main(){ // async retorna uma promessa
             // caso eu mudar para multport (algo assim, não lembro tbm kkkk), ai acho que vou ter que modificar isso
             const resposta = JSON.parse(buf.toString("utf-8")); // Traduz o JSOn para padrão utf-8 (string)
             console.log("Resposta do servidor: ", resposta);
+            if(resposta.service === "channel" && resposta.data.status === "sucesso"){
+                const channel = mensagem.data.channel;
+                const sub = new zmq.Subscriber();
+                await sub.connect(subUrl);
+                sub.subscribe(channel);
+                console.log("Entrou em:", channel);
+            }
         }catch(erro){
             console.error("Falha na troca de mensagem: ", erro);
             break;
