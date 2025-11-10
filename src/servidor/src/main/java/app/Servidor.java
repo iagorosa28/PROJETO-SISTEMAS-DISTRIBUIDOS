@@ -3,6 +3,7 @@ package app;
 // para criar socket REP e falar com o broker
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
+import org.zeromq.SocketType;
 
 // para (de)serializar JSON
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,8 +21,6 @@ public class Servidor{
 
     private static final String BROKER = "tcp://broker:5556";
 
-    /* private static final String XPUB = "tcp://proxy:5558"; */
-
     private static final ObjectMapper JSON = new ObjectMapper();
 
     private static final String url = "jdbc:sqlite:/app/data/meubanco.db";
@@ -36,15 +35,10 @@ public class Servidor{
             
             // cria uma socket do tipo reply
             ZMQ.Socket rep = ctx.createSocket(ZMQ.REP);
-            /* // cria uma socket do tipo pub
-            ZMQ.Socket pub = ctx.createSocket(ZMQ.pub); */
            
             // conecta ao broker
             rep.connect(BROKER);
             System.out.println("Servidor Java conectado em: " + BROKER);
-            /* // conecta ao pub
-            pub.connect(XPUB);
-            System.out.println("Servidor Java conectado em: " + XPUB); */
 
             Router router = new Router(usersDB, channelsDB);
             
@@ -55,7 +49,7 @@ public class Servidor{
 
                 if(reqBytes == null) continue;
 
-                Map<String,Object> resposta;
+                Map<String,Object> resp = Responses.error("resposta ausente");;
                 try{
                     
                     // TypeReference preserva os tipos genéricos
@@ -66,14 +60,19 @@ public class Servidor{
                     String service = Utils.verificaString(req.get("service"));
                     Map<String,Object> data = (Map<String,Object>) req.get("data");
 
-                    resposta = router.qualService(service, data);
-
-                }catch(Exception e){
-                    resposta = Responses.error("JSON inválido");
+                    resp = router.qualService(service, data);
+                    if (resp == null) {
+                        resp = Responses.error("resposta nula do serviço");
+                    }
+                }catch (Throwable t) {
+                    resp = Responses.error("erro interno: " + t.getClass().getSimpleName());
+                } finally {
+                    try {
+                        rep.send(JSON.writeValueAsBytes(resp), 0);
+                    } catch (Throwable t2) {
+                        System.err.println("Falha ao enviar resposta: " + t2);
+                    }
                 }
-                
-                // '0' = single-part
-                rep.send(JSON.writeValueAsBytes(resposta), 0);
 
             }
 

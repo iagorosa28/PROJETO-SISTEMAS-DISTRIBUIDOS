@@ -24,7 +24,7 @@ services:
       dockerfile: Dockerfile_servidor
     depends_on:
       - broker
-      # - proxy
+      - proxy
     volumes:
       - ./data:/app/data
 
@@ -34,5 +34,7 @@ services:
       dockerfile: Dockerfile_cliente
     depends_on:
       - servidor
+      - broker
+      - proxy
     stdin_open: true   # <= mantém STDIN aberto
     tty: true          # <= aloca um TTY

@@ -1,37 +1,19 @@
+# broker.py
 import zmq
 
-context = zmq.Context()
-poller = zmq.Poller()
+ctx = zmq.Context()
 
-client_socket = context.socket(zmq.ROUTER)
-client_socket.bind("tcp://*:5555")
-poller.register(client_socket, zmq.POLLIN)
-client_count = 0
+# front-end: clientes REQ
+frontend = ctx.socket(zmq.ROUTER)
+frontend.bind("tcp://*:5555")
 
-server_socket = context.socket(zmq.DEALER)
-server_socket.bind("tcp://*:5556")
-poller.register(server_socket, zmq.POLLIN)
-server_count = 0
+# back-end: servidores REP
+backend = ctx.socket(zmq.DEALER)
+backend.bind("tcp://*:5556")
 
-while True:
-    socks = dict(poller.poll())
+# o device nativo preserva roteamento e frames corretamente
+zmq.proxy(frontend, backend)
 
-    if socks.get(client_socket) == zmq.POLLIN:
-        client_count += 1
-        message = client_socket.recv()
-        more = client_socket.getsockopt(zmq.RCVMORE)
-        if more:
-            server_socket.send(message, zmq.SNDMORE)
-        else:
-            server_socket.send(message)
-        print(f"Client messages: {client_count}", flush=True)
-
-    if socks.get(server_socket) == zmq.POLLIN:
-        server_count += 1
-        message = server_socket.recv()
-        more = server_socket.getsockopt(zmq.RCVMORE)
-        if more:
-            client_socket.send(message, zmq.SNDMORE)
-        else:
-            client_socket.send(message)
-        print(f"Server messages: {server_count}", flush=True)
+frontend.close()
+backend.close()
+ctx.term()

@@ -1,8 +1,8 @@
 import zmq from "zeromq";
-import { menu, logarUsuario } from "./menu.js"
+import { menu, logarUsuario} from "./menu.js"
 
 const brokerUrl = "tcp://broker:5555"
-const subUrl = "tcp://broker:5557"
+const pubUrl = "tcp://proxy:5558"
 
 async function main(){ // async retorna uma promessa
     /* Traduzido de python (para conectar na URL e conversar com o servidor) */
@@ -11,7 +11,7 @@ async function main(){ // async retorna uma promessa
     console.log("Cliente JS conectado em: ", brokerUrl);
     /* * */
     
-    const loginMsg = logarUsuario(); // pergunta o nome e monta {service:"login", data:{...}}
+    const loginMsg = await logarUsuario(); // pergunta o nome e monta {service:"login", data:{...}}
     try{
         await sock.send(JSON.stringify(loginMsg));
         const [loginBuf] = await sock.receive();
@@ -24,19 +24,51 @@ async function main(){ // async retorna uma promessa
 
     const myName = loginMsg.data.user;
     const sub = new zmq.Subscriber();
-    await sub.connect(subUrl);
+    await sub.connect(pubUrl);
     sub.subscribe(myName);
     console.log("Logado como:", myName);
 
-    while(true){
-        const mensagem = menu();
+    const receiver = (async () => {
+        try {
+        for await (const [topicBuf, payloadBuf] of sub) {
+            const topic = topicBuf.toString();
+            const payloadStr = payloadBuf.toString();
+            let payload;
+            try { payload = JSON.parse(payloadStr); }
+            catch { payload = { message: payloadStr }; }
 
-        if(mensagem === "sair"){
-            break;
+            console.log(`${payload.timestamp} | from[${payload.user}] → to[${topic}]`);
+            console.log(`=> ${payload.message}\n`);
         }
-        if(mensagem === "voltar"){
-            continue;
+        } catch (e) {
+        // erro esperado quando sub.close() é chamado durante shutdown
         }
+    })().catch(e => console.error("Loop SUB:", e));
+
+    const shuttingDown = false;
+    const shutdown = async (code = 0) => {
+        if (shuttingDown) return;
+        shuttingDown = true;
+        try {
+        try { sub.close(); } catch {}
+        try { await receiver; } catch {}
+        try { await sock.close(); } catch {}
+        } finally {
+        process.exit(code);
+        }
+    };
+
+    // Ctrl+C também fecha limpo
+    process.on("SIGINT",  () => shutdown(0));
+    process.on("SIGTERM", () => shutdown(0));
+
+    while(true){
+        const mensagem = await menu(myName);   // <<< agora é assíncrono e não bloqueia o SUB
+        if (mensagem === "sair") { console.log("saindo..."); break; }
+        if (mensagem === "voltar" || mensagem === "rec") { 
+            console.log("Aguardando novas mensagens...\n"); 
+            continue; 
+    }
 
         try{
             await sock.send(JSON.stringify(mensagem)); // Envia a mensagem em JSON
@@ -44,20 +76,18 @@ async function main(){ // async retorna uma promessa
             // caso eu mudar para multport (algo assim, não lembro tbm kkkk), ai acho que vou ter que modificar isso
             const resposta = JSON.parse(buf.toString("utf-8")); // Traduz o JSOn para padrão utf-8 (string)
             console.log("Resposta do servidor: ", resposta);
-            if(resposta.service === "channel" && resposta.data.status === "sucesso"){
-                const channel = mensagem.data.channel;
-                const sub = new zmq.Subscriber();
-                await sub.connect(subUrl);
-                sub.subscribe(channel);
-                console.log("Entrou em:", channel);
-            }
+        if(resposta.service === "channel" && resposta.data.status === "sucesso"){
+            const channel = mensagem.data.channel;
+            sub.subscribe(channel);
+            console.log("Entrou em:", channel);
+        }
         }catch(erro){
             console.error("Falha na troca de mensagem: ", erro);
             break;
         }
     }
 
-    await sock.close(); // finaliza o cliente
+    await shutdown(0);; // finaliza o cliente
     console.log("Cliente finalizado");
 }
 

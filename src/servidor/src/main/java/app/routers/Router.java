@@ -3,6 +3,8 @@ package app.routers;
 // coleções padrões do Java
 import java.util.*;
 
+import org.zeromq.ZMQ;
+
 // importações dos packages
 import app.utils.*;
 import app.services.*;
@@ -16,17 +18,20 @@ public class Router{
     // reaproveita serviços (evita new a cada request)
     private final CadastroService userCadastro;
     private final ListagemService userListagem;
+    private final PubService userMessage;
     private final CadastroService channelCadastro;
     private final ListagemService channelListagem;
+    private final PubService channelMessage;
 
     public Router(SimpleDB usersDB, SimpleDB channelsDB){
         this.usersDB = usersDB;
         this.channelsDB = channelsDB;
         this.userCadastro = new CadastroService(this.usersDB);
         this.userListagem = new ListagemService(this.usersDB);
+        this.userMessage = new PubService(this.usersDB);
         this.channelCadastro = new CadastroService(this.channelsDB);
         this.channelListagem = new ListagemService(this.channelsDB);
-
+        this.channelMessage = new PubService(this.channelsDB);
     }
 
     public Map<String, Object> qualService(String service, Map<String, Object> data){
@@ -37,11 +42,17 @@ public class Router{
         }else if(service.equals("users")){
             return userListagem.listar(service);
 
+        }else if(service.equals("message")){
+            return userMessage.tratarPub(service, data);
+
         }else if(service.equals("channel")){
             return channelCadastro.tratarCadastro(service, data);
 
         }else if(service.equals("channels")){
             return channelListagem.listar(service);
+
+        }else if(service.equals("publish")){
+            return channelMessage.tratarPub(service, data);
 
         }
 

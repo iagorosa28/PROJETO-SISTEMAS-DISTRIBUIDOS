@@ -2,14 +2,17 @@ import zmq
 
 context = zmq.Context()
 
-pub = context.socket(zmq.XPUB)
-pub.bind("tcp://*:5558")
+# Recebe mensagens dos publicadores (servidores)
+xsub = context.socket(zmq.XSUB)
+xsub.bind("tcp://*:5557")
 
-sub = context.socket(zmq.XSUB)
-sub.bind("tcp://*:5557")
+# Repassa mensagens aos assinantes (clientes)
+xpub = context.socket(zmq.XPUB)
+xpub.bind("tcp://*:5558")
 
-zmq.proxy(pub, sub)
+# Proxy liga os dois lados
+zmq.proxy(xsub, xpub)
 
-pub.close()
-sub.close()
-context.close()
+xsub.close()
+xpub.close()
+context.term()
