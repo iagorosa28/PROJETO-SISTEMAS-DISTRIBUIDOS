@@ -23,15 +23,18 @@ public class Router{
     private final ListagemService channelListagem;
     private final PubService channelMessage;
 
-    public Router(SimpleDB usersDB, SimpleDB channelsDB){
+    private final ZMQ.Socket pub;
+
+    public Router(SimpleDB usersDB, SimpleDB channelsDB, ZMQ.Socket pub){
         this.usersDB = usersDB;
         this.channelsDB = channelsDB;
+        this.pub = pub;
         this.userCadastro = new CadastroService(this.usersDB);
         this.userListagem = new ListagemService(this.usersDB);
-        this.userMessage = new PubService(this.usersDB);
+        this.userMessage = new PubService(this.usersDB, this.pub);
         this.channelCadastro = new CadastroService(this.channelsDB);
         this.channelListagem = new ListagemService(this.channelsDB);
-        this.channelMessage = new PubService(this.channelsDB);
+        this.channelMessage = new PubService(this.channelsDB, this.pub);
     }
 
     public Map<String, Object> qualService(String service, Map<String, Object> data){

@@ -20,25 +20,13 @@ import app.persistence.*;
 public class PubService{
     private final SimpleDB db;
     
-    private final ZContext ctx;
     private final ZMQ.Socket pub;
     
     private final ObjectMapper objectMapper = new ObjectMapper();
-    
-    private static final String XSUB = "tcp://proxy:5557";
 
-    public PubService(SimpleDB db) {
+    public PubService(SimpleDB db, ZMQ.Socket pub) {
         this.db = db;
-        this.ctx = new ZContext();
-        this.pub = ctx.createSocket(SocketType.PUB);
-        this.pub.setImmediate(true);
-        this.pub.setSndHWM(10000);
-        this.pub.setLinger(200);
-        this.pub.connect(XSUB);
-        System.out.println("Publisher conectado em: " + XSUB);
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            try { pub.close(); } finally { ctx.close(); }
-        }));
+        this.pub = pub;
     }
 
     public synchronized Map<String, Object> tratarPub(String service, Map<String,Object> data){
@@ -46,14 +34,12 @@ public class PubService{
 
         if(service.equals("publish")){
             name = Utils.verificaString(data.get("channel"));
+            if(name == null || name.trim().isEmpty()){
+                return Responses.serviceError("publish", "channel destino inválido");
+            }
         }else if(service.equals("message")){
             name = Utils.verificaString(data.get("dst"));
-        }
-
-        if(name == null || name.trim().isEmpty()){
-            if(service.equals("publish")){
-                return Responses.serviceError("publish", "channel destino inválido");
-            }else if(service.equals("message")){
+            if(name == null || name.trim().isEmpty()){
                 return Responses.serviceError("dst", "usuário destino inválido");
             }
         }
@@ -72,7 +58,7 @@ public class PubService{
             String topic = name.trim();
             String json  = objectMapper.writeValueAsString(envio);
             boolean ok = pub.send(topic, ZMQ.SNDMORE | ZMQ.DONTWAIT);
-            ok &= pub.send(json, ZMQ.DONTWAIT);
+            ok &= pub.send(json, ZMQ.DONTWAIT); // &= -> AND ex: 'if (topic == OK && json == ok) -> true'
             if (!ok) return Responses.serviceError("message", "fila cheia ou rota indisponível");
             return Responses.ok(service, Responses.baseDataOk());
         } catch (JsonProcessingException e) {

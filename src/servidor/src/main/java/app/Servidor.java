@@ -20,6 +20,7 @@ import app.persistence.*;
 public class Servidor{
 
     private static final String BROKER = "tcp://broker:5556";
+    private static final String PROXY = "tcp://proxy:5557";
 
     private static final ObjectMapper JSON = new ObjectMapper();
 
@@ -33,14 +34,17 @@ public class Servidor{
         // "try-with-resources": ao sair do bloco, o ZContext é fechado automaticamente
         try(ZContext ctx = new ZContext()){
             
-            // cria uma socket do tipo reply
+            // cria sockets rep e pub
             ZMQ.Socket rep = ctx.createSocket(ZMQ.REP);
+            ZMQ.Socket pub = ctx.createSocket(SocketType.PUB);
            
-            // conecta ao broker
+            // conecta ao broker / proxy
             rep.connect(BROKER);
             System.out.println("Servidor Java conectado em: " + BROKER);
+            pub.connect(PROXY);
+            System.out.println("Servidor Java conectado em: " + PROXY);
 
-            Router router = new Router(usersDB, channelsDB);
+            Router router = new Router(usersDB, channelsDB, pub);
             
             while(true){
                 
@@ -49,7 +53,7 @@ public class Servidor{
 
                 if(reqBytes == null) continue;
 
-                Map<String,Object> resp = Responses.error("resposta ausente");;
+                Map<String,Object> resp = Responses.error("resposta ausente");
                 try{
                     
                     // TypeReference preserva os tipos genéricos
