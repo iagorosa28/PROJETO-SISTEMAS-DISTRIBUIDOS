@@ -58,7 +58,7 @@ public class PubService{
             String topic = name.trim();
             String json  = objectMapper.writeValueAsString(envio);
             boolean ok = pub.send(topic, ZMQ.SNDMORE | ZMQ.DONTWAIT);
-            ok &= pub.send(json, ZMQ.DONTWAIT); // &= -> AND ex: 'if (topic == OK && json == ok) -> true'
+            ok &= pub.send(json, ZMQ.DONTWAIT); // &= -> AND ex: 'if (topic == OK && json == ok) -> true'... algo assim ok = ok & algo -> retorna true or false
             if (!ok) return Responses.serviceError("message", "fila cheia ou rota indisponível");
             return Responses.ok(service, Responses.baseDataOk());
         } catch (JsonProcessingException e) {
