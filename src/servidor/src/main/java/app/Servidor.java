@@ -8,6 +8,7 @@ import org.zeromq.SocketType;
 // para (de)serializar JSON
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.msgpack.jackson.dataformat.MessagePackFactory;
 
 // coleções padrões do Java
 import java.util.*;
@@ -22,7 +23,8 @@ public class Servidor{
     private static final String BROKER = "tcp://broker:5556";
     private static final String PROXY = "tcp://proxy:5557";
 
-    private static final ObjectMapper JSON = new ObjectMapper();
+    // private static final ObjectMapper JSON = new ObjectMapper();
+    private static final ObjectMapper JSON = new ObjectMapper(new MessagePackFactory());
 
     private static final String url = "jdbc:sqlite:/app/data/meubanco.db";
 

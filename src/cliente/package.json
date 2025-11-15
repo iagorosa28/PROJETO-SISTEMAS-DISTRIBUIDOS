@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "dependencies": {
+    "@msgpack/msgpack": "^3.0.0",
     "zeromq": "^6.0.0",
     "prompt-sync": "^4.2.0"
   },

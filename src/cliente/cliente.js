@@ -1,4 +1,5 @@
 import zmq from "zeromq";
+import { encode, decode } from "@msgpack/msgpack";
 import { menu, logarUsuario} from "./menu.js"
 
 const brokerUrl = "tcp://broker:5555"
@@ -12,10 +13,13 @@ async function main(){ // async retorna uma promessa
     /* * */
     
     const loginMsg = await logarUsuario(); // pergunta o nome e monta {service:"login", data:{...}}
+    const loginBytes = encode(loginMsg);
     try{
-        await sock.send(JSON.stringify(loginMsg));
+        // await sock.send(JSON.stringify(loginMsg));
+        await sock.send(loginBytes);
         const [loginBuf] = await sock.receive();
-        const loginResp = JSON.parse(loginBuf.toString("utf-8"));
+        //const loginResp = JSON.parse(loginBuf.toString("utf-8"));
+        const loginResp = decode(loginBuf);
         console.log("Login OK:", loginResp);
     }catch(e){
         console.error("Falha no login:", e);
@@ -67,9 +71,12 @@ async function main(){ // async retorna uma promessa
     }
 
         try{
-            await sock.send(JSON.stringify(mensagem)); // Envia a mensagem em JSON
+            // await sock.send(JSON.stringify(mensagem)); // Envia a mensagem em JSON
+            const msgBytes = encode(mensagem);
+            await sock.send(msgBytes);
             const [buf] = await sock.receive(); // Recebe "a lista de buffers" (algo assim, não lembro)
-            const resposta = JSON.parse(buf.toString("utf-8")); // Traduz o JSOn para padrão utf-8 (string)
+            // const resposta = JSON.parse(buf.toString("utf-8")); // Traduz o JSOn para padrão utf-8 (string)
+            const resposta = decode(buf);
             console.log("Resposta do servidor: ", resposta);
         if(resposta.service === "channel" && resposta.data.status === "sucesso"){
             const channel = mensagem.data.channel;
