@@ -1,0 +1,20 @@
+# Banco SQLite
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+*.db
+
+# Logs
+*.log
+
+# Build Maven
+target/
+
+# Node modules
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+*.iml
+"data/" 
