@@ -39,29 +39,29 @@ public class Router{
         this.channelMessage = new PubService(this.msgDB, this.pub);
     }
 
-    public Map<String, Object> qualService(String service, Map<String, Object> data){
+    public Map<String, Object> qualService(String service, Map<String, Object> data, int clock){
         
         if(service.equals("login")){
-            return userCadastro.tratarCadastro(service, data);
+            return userCadastro.tratarCadastro(service, data, clock);
 
         }else if(service.equals("users")){
-            return userListagem.listar(service);
+            return userListagem.listar(service, clock);
 
         }else if(service.equals("message")){
-            return userMessage.tratarPub(service, data);
+            return userMessage.tratarPub(service, data, clock);
 
         }else if(service.equals("channel")){
-            return channelCadastro.tratarCadastro(service, data);
+            return channelCadastro.tratarCadastro(service, data, clock);
 
         }else if(service.equals("channels")){
-            return channelListagem.listar(service);
+            return channelListagem.listar(service, clock);
 
         }else if(service.equals("publish")){
-            return channelMessage.tratarPub(service, data);
+            return channelMessage.tratarPub(service, data, clock);
 
         }
 
-        return Responses.error("serviço desconhecido: " + service);
+        return Responses.error("serviço desconhecido: " + service, clock);
 
     }
 

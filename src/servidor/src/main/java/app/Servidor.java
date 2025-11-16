@@ -28,7 +28,13 @@ public class Servidor{
 
     private static final String url = "jdbc:sqlite:/app/data/meubanco.db";
 
-    public static void main(String[] args) throws Exception{
+    private int logicalClock = 0; // relógio lógico
+
+    public static void main(String[] args) throws Exception {
+        new Servidor().iniciar();   // ✔ cria instância (agora logicalClock funciona)
+    }
+
+    private void iniciar() throws Exception {
 
         SimpleDB usersDB = new SimpleDB(url, "users");
         SimpleDB channelsDB = new SimpleDB(url, "channels");
@@ -56,7 +62,7 @@ public class Servidor{
 
                 if(reqBytes == null) continue;
 
-                Map<String,Object> resp = Responses.error("resposta ausente");
+                Map<String,Object> resp = Responses.error("resposta ausente", logicalClock);
                 try{
                     
                     // TypeReference preserva os tipos genéricos
@@ -66,13 +72,19 @@ public class Servidor{
 
                     String service = Utils.verificaString(req.get("service"));
                     Map<String,Object> data = (Map<String,Object>) req.get("data");
+                    
+                    /* atualizando clock */
+                    int clockRecebido = (int) data.get("clock");
+                    logicalClock = Math.max(logicalClock, clockRecebido);
+                    logicalClock++;
+                    /* ----------------- */
 
-                    resp = router.qualService(service, data);
+                    resp = router.qualService(service, data, logicalClock);
                     if (resp == null) {
-                        resp = Responses.error("resposta nula do serviço");
+                        resp = Responses.error("resposta nula do serviço", logicalClock);
                     }
                 }catch (Throwable t) {
-                    resp = Responses.error("erro interno: " + t.getClass().getSimpleName());
+                    resp = Responses.error("erro interno: " + t.getClass().getSimpleName(), logicalClock);
                 } finally {
                     try {
                         rep.send(JSON.writeValueAsBytes(resp), 0);

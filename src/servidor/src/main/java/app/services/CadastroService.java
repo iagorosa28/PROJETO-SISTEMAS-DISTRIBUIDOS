@@ -15,7 +15,7 @@ public class CadastroService{
         this.db = db;
     }
 
-    public Map<String, Object> tratarCadastro(String service, Map<String,Object> data){
+    public Map<String, Object> tratarCadastro(String service, Map<String,Object> data, int clock){
         String name = null;
 
         if(service.equals("login")){
@@ -26,9 +26,9 @@ public class CadastroService{
 
         if(name == null || name.trim().isEmpty()){
             if(service.equals("login")){
-                return Responses.serviceError("login", "dados de usuário inválidos");
+                return Responses.serviceError("login", "dados de usuário inválidos", clock);
             }else if(service.equals("channel")){
-                return Responses.serviceError("channel", "dados de channel inválidos");
+                return Responses.serviceError("channel", "dados de channel inválidos", clock);
             }
         }
 
@@ -38,7 +38,7 @@ public class CadastroService{
             db.addNome(name);
         }
 
-        Map<String,Object> resposta = Responses.baseDataOk();
+        Map<String,Object> resposta = Responses.baseDataOk(clock);
         // resposta.put("description", name + "cadastrado!");
 
         return Responses.ok(service, resposta);

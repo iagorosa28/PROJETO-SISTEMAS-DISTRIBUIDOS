@@ -29,18 +29,18 @@ public class PubService{
         this.pub = pub;
     }
 
-    public synchronized Map<String, Object> tratarPub(String service, Map<String,Object> data){
+    public synchronized Map<String, Object> tratarPub(String service, Map<String,Object> data, int clock){
         String name = null;
 
         if(service.equals("publish")){
             name = Utils.verificaString(data.get("channel"));
             if(name == null || name.trim().isEmpty()){
-                return Responses.serviceError("publish", "channel destino inválido");
+                return Responses.serviceError("publish", "channel destino inválido", clock);
             }
         }else if(service.equals("message")){
             name = Utils.verificaString(data.get("dst"));
             if(name == null || name.trim().isEmpty()){
-                return Responses.serviceError("dst", "usuário destino inválido");
+                return Responses.serviceError("dst", "usuário destino inválido", clock);
             }
         }
 
@@ -60,19 +60,20 @@ public class PubService{
         envio.put("user", origem);
         envio.put("message", mensagem);
         envio.put("timestamp", timestamp);
+        envio.put("clock", clock);
 
         try {
             String topic = name;
             String json  = objectMapper.writeValueAsString(envio);
             boolean ok = pub.send(topic, ZMQ.SNDMORE | ZMQ.DONTWAIT);
             ok &= pub.send(json, ZMQ.DONTWAIT); // &= -> AND ex: 'if (topic == OK && json == ok) -> true'... algo assim ok = ok & algo -> retorna true or false
-            if (!ok) return Responses.serviceError("message", "fila cheia ou rota indisponível");
-            db.addMsg(origem, topic, mensagem, timestamp);
-            return Responses.ok(service, Responses.baseDataOk());
+            if (!ok) return Responses.serviceError("message", "fila cheia ou rota indisponível", clock);
+            db.addMsg(origem, topic, mensagem, timestamp, clock);
+            return Responses.ok(service, Responses.baseDataOk(clock));
         } catch (JsonProcessingException e) {
-            return Responses.serviceError("message", "falha ao serializar payload");
+            return Responses.serviceError("message", "falha ao serializar payload", clock);
         } catch (Throwable t) {
-            return Responses.serviceError("message", "erro no publisher: " + t.getClass().getSimpleName());
+            return Responses.serviceError("message", "erro no publisher: " + t.getClass().getSimpleName(), clock);
         }
     }
 }

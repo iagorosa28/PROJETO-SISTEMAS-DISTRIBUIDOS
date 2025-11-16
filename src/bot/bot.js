@@ -7,18 +7,26 @@ const brokerUrl = "tcp://broker:5555"
 const proxyUrl = "tcp://proxy:5558"
 
 async function main(){
+
+    let logicalClock = 0;
+
     const sock = new zmq.Request();
     await sock.connect(brokerUrl);
     console.log("Bot JS conectado em: ", brokerUrl);
+
+    logicalClock++;
     
     const botName = faker.person.firstName(); // criando um nome fake
-    const loginMsg = msg.logarUsuario(botName);
+    const loginMsg = msg.logarUsuario(botName, logicalClock);
     const loginBytes = encode(loginMsg);
     try{
         await sock.send(loginBytes);
         const [loginBuf] = await sock.receive();
         const loginResp = decode(loginBuf);
         console.log("Login OK:", loginResp);
+
+        logicalClock = Math.max(logicalClock, loginResp.data.clock);
+
     }catch(e){
         console.error("Falha no login:", e);
         process.exit(1);
@@ -40,6 +48,8 @@ async function main(){
 
                 console.log(`${json.timestamp} | from[${json.user}] → to[${topic}]`);
                 console.log(`=> ${json.message}\n`);
+
+                logicalClock = Math.max(logicalClock, json.clock);
             }
         } catch (e) {}
     })().catch(e => console.error("Loop SUB:", e));
@@ -55,7 +65,8 @@ async function main(){
 
     while(true){
 
-        const channelsMsg = msg.listarCanais();
+        logicalClock++
+        const channelsMsg = msg.listarCanais(logicalClock);
         const channelsBytes = encode(channelsMsg);
 
         let channelsResp;
@@ -65,6 +76,9 @@ async function main(){
             const [channelsBuf] = await sock.receive();
             channelsResp = decode(channelsBuf);
             console.log("Channels OK:", channelsResp);
+
+            logicalClock = Math.max(logicalClock, channelsResp.data.clock);
+
         }catch(e){
             console.error("Channels NOT OK:", e);
             process.exit(1);
@@ -78,13 +92,17 @@ async function main(){
 
         for (let index = 0; index < 10; index++) {
             const mensagemAleatoria = faker.lorem.sentence(); // gerar mensagem aleatória
-            const mensagem = msg.publicarNoCanal(botName, channel, mensagemAleatoria);
+            logicalClock++
+            const mensagem = msg.publicarNoCanal(botName, channel, mensagemAleatoria, logicalClock);
             try{
                 const msgBytes = encode(mensagem);
                 await sock.send(msgBytes);
                 const [buf] = await sock.receive();
                 const resposta = decode(buf);
                 console.log("Resposta do servidor: ", resposta);
+
+                logicalClock = Math.max(logicalClock, resposta.data.clock);
+
             }catch(erro){
                 console.error("Falha na troca de mensagem: ", erro);
                 break;
