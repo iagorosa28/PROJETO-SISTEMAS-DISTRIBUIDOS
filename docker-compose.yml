@@ -38,3 +38,15 @@ services:
       - proxy
     stdin_open: true   # <= mantém STDIN aberto
     tty: true          # <= aloca um TTY
+
+  bot:
+    build:
+      context: ./src/bot
+      dockerfile: Dockerfile_bot
+    deploy:
+      replicas: 2
+    depends_on:
+      - servidor
+      - broker
+      - proxy
+    
