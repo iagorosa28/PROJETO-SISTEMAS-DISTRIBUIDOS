@@ -6,13 +6,18 @@ const brokerUrl = "tcp://broker:5555"
 const proxyUrl = "tcp://proxy:5558"
 
 async function main(){ // async retorna uma promessa
+    
+    let logicalClock = 0;
+
     /* Traduzido de python (para conectar na URL e conversar com o servidor) */
     const sock = new zmq.Request();
     await sock.connect(brokerUrl);
     console.log("Cliente JS conectado em: ", brokerUrl);
     /* * */
     
-    const loginMsg = await logarUsuario(); // pergunta o nome e monta {service:"login", data:{...}}
+    logicalClock++;
+
+    const loginMsg = await logarUsuario(logicalClock); // pergunta o nome e monta {service:"login", data:{...}}
     const loginBytes = encode(loginMsg);
     try{
         // await sock.send(JSON.stringify(loginMsg));
@@ -21,6 +26,9 @@ async function main(){ // async retorna uma promessa
         //const loginResp = JSON.parse(loginBuf.toString("utf-8"));
         const loginResp = decode(loginBuf);
         console.log("Login OK:", loginResp);
+
+        logicalClock = Math.max(logicalClock, loginResp.data.clock);
+
     }catch(e){
         console.error("Falha no login:", e);
         process.exit(1);
@@ -43,6 +51,9 @@ async function main(){ // async retorna uma promessa
 
             console.log(`${json.timestamp} | from[${json.user}] → to[${topic}]`);
             console.log(`=> ${json.message}\n`);
+
+            logicalClock = Math.max(logicalClock, json.clock);
+
         }
         } catch (e) {
         // erro esperado quando sub.close() é chamado durante shutdown
@@ -64,11 +75,13 @@ async function main(){ // async retorna uma promessa
     };
 
     while(true){
-        const mensagem = await menu(myName);   // <<< agora é assíncrono e não bloqueia o SUB :)
+        
+        logicalClock++
+        const mensagem = await menu(myName, logicalClock);   // <<< agora é assíncrono e não bloqueia o SUB :)
         if (mensagem === "sair") { console.log("saindo..."); break; }
         if (mensagem === "voltar") {  
             continue; 
-    }
+        }
 
         try{
             // await sock.send(JSON.stringify(mensagem)); // Envia a mensagem em JSON
@@ -78,6 +91,9 @@ async function main(){ // async retorna uma promessa
             // const resposta = JSON.parse(buf.toString("utf-8")); // Traduz o JSOn para padrão utf-8 (string)
             const resposta = decode(buf);
             console.log("Resposta do servidor: ", resposta);
+
+            logicalClock = Math.max(logicalClock, resposta.data.clock);
+
         if(resposta.service === "channel" && resposta.data.status === "sucesso"){
             const channel = mensagem.data.channel;
             sub.subscribe(channel);

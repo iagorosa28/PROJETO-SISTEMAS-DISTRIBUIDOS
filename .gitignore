@@ -17,4 +17,7 @@ node_modules/
 .vscode/
 .idea/
 *.iml
+<<<<<<< HEAD
 "data/" 
+=======
+>>>>>>> 475e321 (feat: clock)

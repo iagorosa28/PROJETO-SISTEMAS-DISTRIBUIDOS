@@ -15,8 +15,8 @@ public class ListagemService{
         this.db = db;
     }
 
-    public Map<String, Object> listar(String service){
-        Map<String, Object> resposta = Responses.baseDataOkList();
+    public Map<String, Object> listar(String service, int clock){
+        Map<String, Object> resposta = Responses.baseDataOkList(clock);
 
         List<String> nomes = db.listarNomes();
         resposta.put("lista", new ArrayList<>(nomes));

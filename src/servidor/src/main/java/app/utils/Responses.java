@@ -21,15 +21,16 @@ public final class Responses{
         return resposta;
     }
 
-    public static Map<String,Object> baseDataOk(){
+    public static Map<String,Object> baseDataOk(int clock){
         Map<String,Object> resposta = new HashMap<>();
         resposta.put("status", "sucesso");
         resposta.put("timestamp", OffsetDateTime.now().toString());
+        resposta.put("clock", clock);
         return resposta;
     }
 
-    public static Map<String,Object> error(String descricao){
-        Map<String,Object> d = baseDataError(descricao);
+    public static Map<String,Object> error(String descricao, int clock){
+        Map<String,Object> d = baseDataError(descricao, clock);
         Map<String,Object> resposta = new HashMap<>();
         resposta.put("servidor", INSTANCE_ID);
         resposta.put("service", "error");
@@ -37,8 +38,8 @@ public final class Responses{
         return resposta;
     }
 
-    public static Map<String,Object> serviceError(String service, String descricao){
-        Map<String,Object> d = baseDataError(descricao);
+    public static Map<String,Object> serviceError(String service, String descricao, int clock){
+        Map<String,Object> d = baseDataError(descricao, clock);
         Map<String,Object> resposta = new HashMap<>();
         resposta.put("servidor", INSTANCE_ID);
         resposta.put("service", service);
@@ -46,18 +47,20 @@ public final class Responses{
         return resposta;
     }
 
-    public static Map<String,Object> baseDataError(String descricao){
+    public static Map<String,Object> baseDataError(String descricao, int clock){
         Map<String,Object> d = new HashMap<>();
         d.put("status", "erro");
         d.put("timestamp", OffsetDateTime.now().toString());
         d.put("description", descricao);
+        d.put("clock", clock);
         return d;
     }
 
     // sla, não quis pensar muito
-    public static Map<String,Object> baseDataOkList(){
+    public static Map<String,Object> baseDataOkList(int clock){
         Map<String,Object> resposta = new HashMap<>();
         resposta.put("timestamp", OffsetDateTime.now().toString());
+        resposta.put("clock", clock);
         return resposta;
     }
 
