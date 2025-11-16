@@ -22,6 +22,8 @@ services:
     build:
       context: ./src/servidor
       dockerfile: Dockerfile_servidor
+    deploy:
+      replicas: 3
     depends_on:
       - broker
       - proxy

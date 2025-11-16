@@ -8,10 +8,14 @@ import java.time.OffsetDateTime;
 
 public final class Responses{
 
+    private static final String INSTANCE_ID =
+        System.getenv().getOrDefault("HOSTNAME", "unknown"); // nome do container
+
     private Responses() {}
 
     public static Map<String,Object> ok(String service, Map<String,Object> data){
         Map<String,Object> resposta = new HashMap<>();
+        resposta.put("servidor", INSTANCE_ID);
         resposta.put("service", service);
         resposta.put("data", data);
         return resposta;
@@ -27,6 +31,7 @@ public final class Responses{
     public static Map<String,Object> error(String descricao){
         Map<String,Object> d = baseDataError(descricao);
         Map<String,Object> resposta = new HashMap<>();
+        resposta.put("servidor", INSTANCE_ID);
         resposta.put("service", "error");
         resposta.put("data", d);
         return resposta;
@@ -35,6 +40,7 @@ public final class Responses{
     public static Map<String,Object> serviceError(String service, String descricao){
         Map<String,Object> d = baseDataError(descricao);
         Map<String,Object> resposta = new HashMap<>();
+        resposta.put("servidor", INSTANCE_ID);
         resposta.put("service", service);
         resposta.put("data", d);
         return resposta;
