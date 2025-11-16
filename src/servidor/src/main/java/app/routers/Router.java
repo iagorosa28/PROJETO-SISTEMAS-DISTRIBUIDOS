@@ -14,6 +14,7 @@ public class Router{
 
     private final SimpleDB usersDB;
     private final SimpleDB channelsDB;
+    private final MsgDB msgDB;
 
     // reaproveita serviços (evita new a cada request)
     private final CadastroService userCadastro;
@@ -25,16 +26,17 @@ public class Router{
 
     private final ZMQ.Socket pub;
 
-    public Router(SimpleDB usersDB, SimpleDB channelsDB, ZMQ.Socket pub){
+    public Router(SimpleDB usersDB, SimpleDB channelsDB, MsgDB msgDB, ZMQ.Socket pub){
         this.usersDB = usersDB;
         this.channelsDB = channelsDB;
+        this.msgDB = msgDB;
         this.pub = pub;
         this.userCadastro = new CadastroService(this.usersDB);
         this.userListagem = new ListagemService(this.usersDB);
-        this.userMessage = new PubService(this.usersDB, this.pub);
+        this.userMessage = new PubService(this.msgDB, this.pub);
         this.channelCadastro = new CadastroService(this.channelsDB);
         this.channelListagem = new ListagemService(this.channelsDB);
-        this.channelMessage = new PubService(this.channelsDB, this.pub);
+        this.channelMessage = new PubService(this.msgDB, this.pub);
     }
 
     public Map<String, Object> qualService(String service, Map<String, Object> data){

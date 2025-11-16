@@ -32,6 +32,7 @@ public class Servidor{
 
         SimpleDB usersDB = new SimpleDB(url, "users");
         SimpleDB channelsDB = new SimpleDB(url, "channels");
+        MsgDB msgDB = new MsgDB(url, "messages");
         
         // "try-with-resources": ao sair do bloco, o ZContext é fechado automaticamente
         try(ZContext ctx = new ZContext()){
@@ -46,7 +47,7 @@ public class Servidor{
             pub.connect(PROXY);
             System.out.println("Servidor Java conectado em: " + PROXY);
 
-            Router router = new Router(usersDB, channelsDB, pub);
+            Router router = new Router(usersDB, channelsDB, msgDB, pub);
             
             while(true){
                 

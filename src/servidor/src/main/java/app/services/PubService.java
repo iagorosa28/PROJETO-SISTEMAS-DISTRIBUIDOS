@@ -18,13 +18,13 @@ import app.utils.*;
 import app.persistence.*;
 
 public class PubService{
-    private final SimpleDB db;
+    private final MsgDB db;
     
     private final ZMQ.Socket pub;
     
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public PubService(SimpleDB db, ZMQ.Socket pub) {
+    public PubService(MsgDB db, ZMQ.Socket pub) {
         this.db = db;
         this.pub = pub;
     }
@@ -45,21 +45,29 @@ public class PubService{
         }
 
         name = name.trim();
+        String origem = null;
+        
         Map<String,Object> envio = new HashMap<>();
         if(service.equals("publish")){
-            envio.put("user", data.get("user"));
+            origem = (String) data.get("user");
         }else if(service.equals("message")){
-            envio.put("user", data.get("src"));
+            origem = (String) data.get("src");
         }
-        envio.put("message", data.get("message"));
-        envio.put("timestamp", data.get("timestamp"));
+
+        String mensagem = (String) data.get("message");
+        String timestamp = (String) data.get("timestamp");
+
+        envio.put("user", origem);
+        envio.put("message", mensagem);
+        envio.put("timestamp", timestamp);
 
         try {
-            String topic = name.trim();
+            String topic = name;
             String json  = objectMapper.writeValueAsString(envio);
             boolean ok = pub.send(topic, ZMQ.SNDMORE | ZMQ.DONTWAIT);
             ok &= pub.send(json, ZMQ.DONTWAIT); // &= -> AND ex: 'if (topic == OK && json == ok) -> true'... algo assim ok = ok & algo -> retorna true or false
             if (!ok) return Responses.serviceError("message", "fila cheia ou rota indisponível");
+            db.addMsg(origem, topic, mensagem, timestamp);
             return Responses.ok(service, Responses.baseDataOk());
         } catch (JsonProcessingException e) {
             return Responses.serviceError("message", "falha ao serializar payload");
