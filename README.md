@@ -1,3 +1,6 @@
+> ⚠️ **Aviso:** O projeto ainda **não está completo**. Falta implementar parte dos requisitos da **Seção 4 – Servidor**.  
+> A documentação abaixo descreve o estado **final planejado** do sistema.
+
 # Documentação do Projeto de Sistemas Distribuídos
 
 ## 1. Visão Geral do Projeto
