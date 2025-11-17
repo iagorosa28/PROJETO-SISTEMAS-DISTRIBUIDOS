@@ -1,191 +1,149 @@
-> ⚠️ **Aviso:** O projeto ainda **não está completo**. Falta implementar parte dos requisitos da **Seção 4 – Servidor**.  
-> A documentação abaixo descreve o estado **final planejado** do sistema.
+> ⚠️ **Aviso:** O projeto ainda **não está completo**.  
+> As partes de **eleição de coordenador**, **servidor de referência** e **replicação entre servidores** não foram implementadas.  
+> A documentação abaixo descreve o estado **parcial real** do sistema e o comportamento **planejado** onde relevante.
 
 # Documentação do Projeto de Sistemas Distribuídos
 
 ## 1. Visão Geral do Projeto
 
-Este projeto foi desenvolvido como parte da disciplina de Sistemas Distribuídos e implementa diversos conceitos essenciais, incluindo comunicação entre processos, relógios lógicos, replicação, consistência, sincronização e arquitetura distribuída envolvendo cliente, bot, broker, proxy e múltiplos servidores.
+Este projeto foi desenvolvido como parte da disciplina de Sistemas Distribuídos e implementa diversos conceitos essenciais, incluindo comunicação entre processos, relógios lógicos, troca de mensagens distribuídas, persistência e uma arquitetura envolvendo cliente, bot, broker, proxy e servidores.
 
-A implementação foi feita utilizando três linguagens de programação:
+Três linguagens foram usadas conforme exigido:
+- **Java** — servidores, lógica de negócio, armazenamento.
+- **JavaScript** — cliente e bot (geração de tráfego e testes).
+- **Python** — broker e proxy (código base fornecido pelo professor).
 
-* **Java**: servidores (lógica de negócio, relógios lógicos, sincronização, eleição, replicação).
-* **JavaScript**: cliente e bot (interação e testes da comunicação distribuída).
-* **Python**: broker, proxy e demais componentes de roteamento.
+As mensagens são armazenadas em **SQLite**, escolha livre permitida pelo enunciado.
 
-Como mecanismo de persistência e consistência de dados, foi utilizado **SQLite**, integrado ao ambiente de desenvolvimento via extensão do VS Code.
-
-A execução dos componentes é orquestrada com **Docker Compose**, permitindo fácil inicialização, limpeza e replicação do ambiente.
+Toda a execução é gerenciada com **Docker Compose**.
 
 ---
 
 ## 2. Estrutura do Sistema
 
-O sistema é dividido em vários componentes que interagem entre si:
+### 2.1 Cliente (JavaScript)
+- Implementado em JavaScript.
+- Envia requisições aos servidores via broker/proxy.
+- Utiliza padrão **request–reply**.
+- Usa **relógio lógico** para timestamp de mensagens.
 
-### **2.1 Cliente (JavaScript)**
+### 2.2 Bot (JavaScript)
+- Simula atividades automáticas.
+- Usa o mesmo protocolo do cliente.
+- Envia mensagens públicas e privadas.
 
-* Implementado em JavaScript.
-* Responsável por enviar requisições ao servidor através do broker/proxy.
-* Utiliza o padrão **request-reply**.
-* Realiza troca de mensagens com uso de relógio lógico.
+### 2.3 Broker e Proxy (Python)
+- Código fornecido pelo professor.
+- Realizam roteamento de mensagens entre cliente/bot ↔ servidores.
+- Utilizam ZeroMQ para comunicação.
 
-### **2.2 Bot (JavaScript)**
+⚠️ Servidor de referência **não** foi implementado.
 
-* Utiliza JavaScript para simular operações automatizadas.
-* Comunicação seguindo o padrão especificado no projeto.
-* Interage com o broker ao enviar e receber mensagens.
+### 2.4 Servidores (Java)
+- Contêm a lógica principal.
+- Usam ZeroMQ.
+- Implementam:
+  - recepção e envio de mensagens
+  - relógios lógicos
+  - persistência com SQLite
 
-### **2.3 Broker e Proxy (Python)**
-
-* Encaminhamento de mensagens entre cliente/bot ↔ servidores.
-* Implementados em Python utilizando bibliotecas de comunicação distribuída.
-* Inclui também o **servidor de referência**, conforme exigido no projeto.
-
-### **2.4 Servidores (Java)**
-
-* Contêm a lógica principal do sistema.
-* Utilizam biblioteca apropriada de comunicação distribuída.
-* Implementam:
-
-  * relógios lógicos
-  * sincronização entre servidores
-  * eleição de coordenador
-  * replicação de dados utilizando SQLite
-  * comunicação request-reply e pub-sub conforme necessário
+⚠️ NÃO implementam:
+- eleição de coordenador  
+- replicação/sincronização entre servidores  
+- servidor de referência  
 
 ---
 
-## 3. Funcionalidades Distribuídas Implementadas
+## 3. Funcionalidades Implementadas
 
-### **3.1 Request-Reply**
+### 3.1 Request–Reply
+Cliente e bot enviam requisições via broker/proxy e recebem respostas do servidor.
 
-O cliente envia requisições ao servidor através do broker/proxy, que retorna uma resposta formatada de acordo com o padrão estabelecido.
+### 3.2 Serialização com MessagePack
+Mensagens são compactadas usando MessagePack.
 
-### **3.2 Publisher-Subscriber**
+### 3.3 Relógios Lógicos
+Todas as mensagens carregam timestamps lógicos para ordenação básica de eventos.
 
-Bots e serviços podem receber transmissões enviadas por servidores usando o padrão publish-subscribe.
-
-### **3.3 Serialização com MessagePack**
-
-Para otimizar o transporte, mensagens são serializadas utilizando MessagePack, garantindo baixo overhead.
-
-### **3.4 Relógios Lógicos**
-
-Todas as mensagens enviadas entre cliente, bot, broker e servidores carregam timestamps lógicos.
-Os servidores utilizam isso para:
-
-* ordenar eventos
-* resolver concorrência
-* manter consistência interna
-
-### **3.5 Consistência e Replicação**
-
-Os servidores mantêm uma cópia replicada do banco SQLite.
-Mecanismos implementados incluem:
-
-* sincronização ativa após eleições
-* atualização periódica
-* reconciliação de estado entre servidores
-
-### **3.6 Eleição de Coordenador**
-
-Implementa algoritmo de eleição (por exemplo: Bully, Ring, etc.).
-O coordenador é responsável por:
-
-* sincronizar relógios
-* acionar replicações
-* gerenciar eventos críticos
+### 3.4 Persistência em SQLite
+Mensagens públicas e privadas são armazenadas localmente em cada servidor.
 
 ---
 
-## 4. Arquitetura Geral
+## 4. Funcionalidades Não Implementadas
 
-```text
-Cliente (JS) ----> Broker (Py) ----> Proxy (Py) ----> Servidores (Java)
-         \                                          /
-          \-------> Bot (JS) -----------------------
-```
-
-Cada componente é containerizado e executado via Docker.
+- ❌ Eleição de coordenador  
+- ❌ Servidor de referência  
+- ❌ Replicação entre servidores  
+- ❌ Sincronização de estado  
 
 ---
 
-## 5. Banco de Dados e Persistência
+## 5. Arquitetura Geral
 
-* Banco local em cada servidor utilizando **SQLite**.
-* Replicação entre servidores conforme o coordenador.
-* Extensão de SQLite no VS Code utilizada para visualização e análise.
+Cliente (JS) → Broker (Python) → Proxy (Python) → Servidores (Java)  
+Cliente e Bot usam os mesmos caminhos de comunicação.  
+Todos os componentes executam em containers Docker.
 
 ---
 
-## 6. Instruções de Execução
+## 6. Banco de Dados e Persistência
 
-### **6.1 Limpar containers antigos**
+- Cada servidor mantém um banco SQLite independente.
+- Persistência funciona corretamente.
+- Não há replicação.
 
-```bash
+---
+
+## 7. Instruções de Execução
+
+**Limpar containers antigos:**  
 docker compose down --remove-orphans
-```
 
-### **6.2 Construir todos os containers**
-
-```bash
+**Construir containers:**  
 docker compose build
-```
 
-### **6.3 Executar o cliente**
-
-```bash
+**Executar o cliente:**  
 docker compose run --rm -it cliente
-```
 
-### **6.4 Subir os bots e demais serviços**
-
-```bash
+**Subir bots e demais serviços:**  
 docker compose up
-```
 
 ---
 
-## 7. Critérios de Avaliação e Conformidade
+## 8. Critérios de Avaliação e Conformidade
 
-Abaixo segue um mapa entre o que o projeto exige e o que foi implementado:
+### Cliente (2 pontos)
+✔ ZeroMQ  
+✔ Request–reply  
+✔ Relógio lógico  
 
-### ✔ **Cliente (2 pontos)**
+### Bot (1.5 ponto)
+✔ Biblioteca correta  
+✔ Troca de mensagens  
 
-* uso de biblioteca correta — **implementado**
-* request-reply — **implementado**
-* relógio lógico — **implementado**
+### Broker e Proxy (1 ponto)
+✔ Funcionam  
+❌ Servidor de referência não implementado  
 
-### ✔ **Bot (1.5 ponto)**
+### Servidor (4 pontos)
+✔ ZeroMQ  
+✔ Troca de mensagens  
+✔ Relógio lógico  
+❌ Eleição de coordenador  
+❌ Replicação/sincronização  
+❌ Servidor de referência  
 
-* biblioteca correta — **sim**
-* troca de mensagens — **sim**
+### Documentação (0.5 ponto)
+✔ Descrição clara e completa do que foi feito
 
-### ✔ **Broker, proxy e referência (1 ponto)**
-
-* broker + proxy funcionando — **sim**
-* servidor de referência — **sim**
-
-### ✔ **Servidor (4 pontos)**
-
-* biblioteca correta — **sim**
-* troca de mensagens — **sim**
-* relógio lógico — **sim**
-* sincronização de relógio — **sim**
-* eleição de coordenador — **sim**
-* sincronização de dados — **sim**
-
-### ✔ **Documentação (0.5 ponto)**
-
-Este documento atende ao requisito.
-
-### ✔ **Apresentação (1 ponto)**
-
-O documento pode servir como base para a apresentação do funcionamento.
+### Apresentação (1 ponto)
+✔ README adequado como apoio
 
 ---
 
-## 8. Considerações Finais
+## 9. Considerações Finais
 
-Este projeto demonstra a aplicação prática de diversos conceitos essenciais de sistemas distribuídos. A arquitetura foi projetada para ser modular, extensível e resiliente, utilizando múltiplas linguagens e containers. A documentação acima descreve de forma clara a implementação, sua estrutura e como executá-la.
+O projeto implementa a base de um sistema distribuído de troca de mensagens, cobrindo comunicação via ZeroMQ, múltiplas linguagens, containers e persistência.
+
+Apesar de algumas funcionalidades avançadas não terem sido concluídas, a estrutura atual demonstra os principais conceitos da disciplina e serve como base sólida para expansão futura.
